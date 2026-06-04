@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Secret Garden</title>
+
+<style>
+
+/* BASE */
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:Georgia, serif;
+    background:#081c15;
+    color:white;
+    overflow-x:hidden;
+    overflow-y:auto;
+}
+
+/* FIREFLIES BACKGROUND */
+#fireflies{
+    position:fixed;
+    width:100vw;
+    height:100vh;
+    top:0;
+    left:0;
+    pointer-events:none;
+    z-index:0;
+}
+.glow-bg{
+    position:fixed;
+    inset:0;
+    background:
+        radial-gradient(circle at 20% 20%, rgba(255,255,255,0.05), transparent 40%),
+        radial-gradient(circle at 80% 30%, rgba(255,192,203,0.06), transparent 50%),
+        radial-gradient(circle at 50% 80%, rgba(173,216,230,0.05), transparent 45%);
+    z-index:0;
+    pointer-events:none;
+}
+.firefly{
+    position:absolute;
+    width:6px;
+    height:6px;
+    background:yellow;
+    border-radius:50%;
+    box-shadow:0 0 10px yellow;
+    opacity:0.8;
+    animation:float 6s infinite ease-in-out;
+}
+
+@keyframes float{
+    0%{ transform:translateY(0); opacity:0; }
+    50%{ opacity:1; }
+    100%{ transform:translateY(-200px); opacity:0; }
+}
+
+/* SCREENS */
+.screen{
+    width:100vw;
+    min-height:100vh;
+
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+
+    position:relative;
+    z-index:1;
+
+    opacity:1;
+    transition:0.5s ease;
+}
+
+.hidden{
+    display:none !important;
+}
+
+/* INPUT */
+input{
+    padding:12px;
+    margin:8px;
+    width:250px;
+    border:none;
+    border-radius:10px;
+    text-align:center;
+}
+#login input{
+    display:block;
+}
+
+/* BUTTON */
+button{
+    padding:12px 20px;
+    border:none;
+    border-radius:25px;
+    cursor:pointer;
+    margin-top:15px;
+    font-size:15px;
+}
+
+/* ROSE */
+#rose{
+    font-size:120px;
+    animation:grow 2.5s ease forwards;
+    cursor:pointer;
+}
+#rose:hover{
+    animation:grow 2.5s ease forwards,
+              roseWiggle 0.6s infinite;
+}
+@keyframes roseWiggle{
+    0%{ transform:rotate(-4deg); }
+    50%{ transform:rotate(4deg); }
+    100%{ transform:rotate(-4deg); }
+}
+@keyframes grow{
+    from{ transform:translateY(200px) scale(0); }
+    to{ transform:translateY(0) scale(1); }
+}
+
+/* MESSAGE */
+#message{
+    margin-top:20px;
+    font-size:18px;
+    line-height:1.8;
+}
+
+/* FLOWERS */
+#flowers{
+    display:flex;
+    gap:20px;
+    margin-top:25px;
+    flex-wrap:wrap;
+    justify-content:center;
+}
+
+.flower{
+    font-size:55px;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+.flower:hover{
+    transform:scale(1.25);
+}
+
+/* NOTE ENVELOPE */
+#noteBox{
+    width:350px;
+    min-height:220px;
+    background:#fff8e7;
+    color:#333;
+    border-radius:10px;
+    position:relative;
+    margin-top:25px;
+    padding:80px 25px 25px; 
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:flex-start;
+    text-align:center;
+    line-height:1.6;
+    box-shadow:0 10px 30px rgba(0,0,0,0.3);
+}
+
+#noteBox::before{
+    content:"";
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:80px;
+    background:#f2e6c9;
+    clip-path:polygon(0 0, 100% 0, 50% 100%);
+}
+
+@keyframes fadeIn{
+    from{opacity:0; transform:translateY(5px);}
+    to{opacity:1; transform:translateY(0);}
+}
+
+/* ERROR */
+#error{
+    margin-top:15px;
+    color:#ffc9c9;
+}
+
+.hint{
+    margin-top:10px;
+    opacity:0.7;
+}
+
+#gardenPopup{
+    position:absolute;
+    top:30px;
+    left:50%;
+    transform:translateX(-50%);
+
+    width:420px;
+    max-width:90vw;
+
+    background:rgba(255,255,255,0.95);
+    color:#333;
+
+    padding:20px;
+    border-radius:15px;
+
+    text-align:center;
+
+    box-shadow:0 10px 30px rgba(0,0,0,0.3);
+
+    animation:popupFade 0.8s ease;
+}
+
+@keyframes popupFade{
+    from{
+        opacity:0;
+        transform:translateX(-50%) translateY(-20px);
+    }
+    to{
+        opacity:1;
+        transform:translateX(-50%) translateY(0);
+    }
+}
+.fade-in{
+    opacity:0;
+    transform:translateY(10px);
+    animation:fadeIn 0.8s ease forwards;
+}
+
+@keyframes fadeIn{
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+.firework{
+    position:absolute;
+    width:6px;
+    height:6px;
+    border-radius:50%;
+    pointer-events:none;
+    z-index:999;
+}
+
+@keyframes fwPop{
+    0%{
+        opacity:1;
+        transform:scale(0);
+    }
+    100%{
+        opacity:0;
+        transform:scale(3) translateY(-40px);
+    }
+}
+.continue-btn{
+    background:linear-gradient(135deg, #ffafcc, #bde0fe);
+    color:#1b1b1b;
+    font-weight:bold;
+    border-radius:30px;
+    padding:12px 25px;
+    transition:0.3s;
+}
+.continue-btn:hover{
+    transform:scale(1.05);
+    box-shadow:0 0 15px rgba(255,255,255,0.4);
+}
+.printer-wrapper{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+}
+
+.receipt-machine{
+    width:340px;
+    height:70px;
+    background:#444;
+    border-radius:12px;
+    position:relative;
+    z-index:2;
+}
+
+.receipt-machine::after{
+    content:"";
+    position:absolute;
+    left:50%;
+    transform:translateX(-50%);
+    bottom:12px;
+
+    width:240px;
+    height:10px;
+
+    background:#111;
+    border-radius:20px;
+}
+
+.receipt{
+    width:320px;
+    max-width:90vw;
+
+    background:#fffdf7;
+    color:#333;
+
+    text-align:center;
+    line-height:1.8;
+
+    overflow:hidden;
+
+    max-height:0;
+    padding:0 25px;
+
+    box-shadow:0 10px 25px rgba(0,0,0,.25);
+
+    animation:thermalPrint 4s steps(80,end) forwards;
+}
+
+@keyframes thermalPrint{
+    from{
+        max-height:0;
+        padding-top:0;
+        padding-bottom:0;
+    }
+
+    to{
+        max-height:1000px;
+        padding-top:25px;
+        padding-bottom:25px;
+    }
+}
+#afterGarden{
+    min-height:100vh;
+    overflow-y:auto;
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-start;
+    align-items:center;
+    padding:60px 20px 120px;
+    gap:20px;
+}
+.petal{
+    position:fixed;
+    top:-10vh;
+    width:12px;
+    height:12px;
+    background:rgba(255,192,203,0.8);
+    border-radius:50% 0 50% 50%;
+    opacity:0.7;
+    z-index:0;
+    pointer-events:none;
+    animation:fall linear infinite;
+}
+
+@keyframes fall{
+    to{
+        transform:translateY(120vh) rotate(360deg);
+        opacity:0;
+    }
+}
+.after-enter{
+    animation: afterGardenReveal 1.5s ease forwards;
+}
+
+@keyframes afterGardenReveal{
+    from{
+        opacity:0;
+        transform:translateY(40px);
+    }
+
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+</style>
+
+</head>
+
+<body>
+<audio id="gardenMusic" loop preload="auto">
+    <source src="music/thinkingoutloud.mp3" type="audio/mpeg">
+</audio>
+
+<!-- FIREFLIES -->
+<div id="fireflies"></div>
+
+<div class="glow-bg"></div>
+
+<!-- LOGIN -->
+<div id="login" class="screen">
+
+<h1>🌹 Secret Garden 🌹</h1>
+
+<input type="text" placeholder="Username (just put any :3)">
+
+<input type="password" id="password" placeholder="Password">
+
+<button onclick="checkPassword()">Enter</button>
+
+<p class="hint">Hint: Who's the pretty girl I like?</p>
+
+<p id="error"></p>
+
+</div>
+
+<!-- GARDEN -->
+<div id="garden" class="screen hidden">
+
+<div id="rose" onclick="showFlowers()">🌹</div>
+
+<p id="message">
+    Some flowers bloom because they're watered.<br>
+    This one bloomed because I met you.
+</p>
+
+<div id="flowers" class="hidden">
+
+    <div class="flower" onclick="showNote(1)">🌷</div>
+    <div class="flower" onclick="showNote(2)">🌼</div>
+    <div class="flower" onclick="showNote(3)">🌸</div>
+    <div class="flower" onclick="showNote(4)">🌺</div>
+    <div class="flower" onclick="showNote(5)">💐</div>
+
+</div>
+
+<div id="noteBox" class="hidden">
+Click a flower 🌸 (left to right)
+</div>
+
+<div id="gardenPopup" class="hidden">
+    <p>
+        🌙 There's one last path beyond the garden...
+        <br><br>
+        Would you like to see it?
+    </p>
+
+    <button class="continue-btn" onclick="openAfterGarden()">
+    Continue 🤍
+    </button> 
+
+</div> 
+
+</div> <!-- closes garden -->
+
+<script>
+
+const correctPassword = "Janelle";
+const yourNames = ["mina", "nayeon", "freen", "jihyo"];
+const princessNames = ["princess"];
+const autumnNames = ["autumn", "otom", "otomimi"];
+
+let wrongAttempts = 0;
+let nameAttempts = 0;
+let selectedDate = "";
+
+/* 🌿 FIREFLIES */
+function createFireflies(){
+    const container = document.getElementById("fireflies");
+
+    for(let i=0;i<20;i++){
+        const f = document.createElement("div");
+        f.classList.add("firefly");
+
+        f.style.left = Math.random()*100 + "vw";
+        f.style.top = Math.random()*100 + "vh";
+        f.style.animationDuration = (3+Math.random()*5) + "s";
+
+        container.appendChild(f);
+    }
+}
+function createPetals(){
+    for(let i=0;i<12;i++){
+        const p = document.createElement("div");
+        p.classList.add("petal");
+
+        p.style.left = Math.random()*100 + "vw";
+        p.style.animationDuration = (6 + Math.random()*6) + "s";
+        p.style.animationDelay = Math.random()*5 + "s";
+
+        document.body.appendChild(p);
+
+        // cleanup so it doesn’t lag
+        setTimeout(() => p.remove(), 15000);
+    }
+}
+
+/* 🔐 LOGIN */
+function checkPassword(){
+
+    const password =
+    document.getElementById("password").value.toLowerCase();
+
+    if(yourNames.includes(password)){
+
+        nameAttempts++;
+
+        if(nameAttempts === 1){
+            document.getElementById("error").innerHTML =
+            "Ay enebe<br><small>Kilig ako, but I mean pretty girl I LIKE hehe</small>";
+        }
+        else if(nameAttempts === 2){
+            document.getElementById("error").innerHTML =
+            "Nyay<br><small>sila talaga?</small>";
+        }
+        else{
+            document.getElementById("error").innerHTML =
+            "Ngi<br><small>;-;</small>";
+        }
+
+        return;
+    }
+
+    if(princessNames.includes(password)){
+        document.getElementById("error").innerHTML =
+        "Princess? 👑<br><small>You're cute, but that's not the password, darling</small>";
+
+    return;
+    }
+
+    if(autumnNames.includes(password)){
+       
+        nameAttempts++;
+
+         if(nameAttempts === 1){
+            document.getElementById("error").innerHTML =
+            "Autumn? <br><small>Still jelly? Not her, girl</small>";
+        }
+         else if(nameAttempts === 2){
+            document.getElementById("error").innerHTML =
+            "Her again?<br><small>Really?</small>";
+        }
+        else{
+            document.getElementById("error").innerHTML =
+            "Jelly Jelly<br><small>blep</small>";
+        }
+
+        return;
+    }
+
+    if(password === correctPassword.toLowerCase()){
+
+    document.getElementById("login").classList.add("hidden");
+    document.getElementById("garden").classList.remove("hidden");
+
+    const music = document.getElementById("gardenMusic");
+    music.volume = 0.4;
+
+    music.play()
+        .then(() => console.log("Music started"))
+        .catch(err => console.log(err));
+
+    createFireflies();
+
+    wrongAttempts = 0;
+    nameAttempts = 0;
+
+    return;
+    }
+
+    wrongAttempts++;
+
+    if(wrongAttempts === 1){
+        document.getElementById("error").innerHTML =
+        "Access Denied 🌧️<br><small>Perhaps a different name?</small>";
+    }
+    else{
+        document.getElementById("error").innerHTML =
+        "Ah ganun....<br><small>;-;</small>";
+    }
+}
+
+/* 🌸 FLOWERS */
+function showFlowers(){
+
+    console.log("rose clicked");
+
+    const flowers = document.getElementById("flowers");
+    const noteBox = document.getElementById("noteBox");
+
+    if(flowers){
+        flowers.classList.remove("hidden");
+        flowers.classList.add("fade-in");
+    }
+
+    if(noteBox){
+        noteBox.classList.remove("hidden");
+        noteBox.classList.add("fade-in");
+    }
+
+    for(let i = 0; i < 3; i++){
+        setTimeout(() => {
+            createFirework();
+        }, i * 200);
+    }
+}
+/* 💌 NOTES */
+function showNote(num){
+
+    const notes = {
+        1:"You know, this is kind of your fault. You were the one who talked to me first ;-;",
+        2:"At first, I thought I just wanted to be friends. Then I started looking forward to every conversation.",
+        3:"Somewhere between the random chats, the jokes, and the little moments... You became my favorite part of the day. Perhaps one I keep looking forward to.",
+        4:"I kept telling myself not to get attached. That plan failed spectacularly.",
+        5:"They say some people fall in love at first sight, I think I fell little by little. And somehow, without noticing, I fell harder than I ever meant to. The poems speak louder for me"
+    };
+
+    const box = document.getElementById("noteBox");
+
+    box.innerHTML = `
+        💌<br><br>
+        <div class="fade-in">
+            ${notes[num]}
+        </div>
+    `;
+
+    // Show popup when last flower is clicked
+    if(num === 5){
+        setTimeout(() => {
+            document.getElementById("gardenPopup")
+                .classList.remove("hidden");
+        }, 7000);
+    }
+}
+
+function showDateOptions(){
+    document.getElementById("afterMessage").style.display = "none";
+    document.getElementById("gardenChoice").classList.add("hidden");
+    document.getElementById("dateOptions").classList.remove("hidden");
+
+}
+
+function declineGarden(){
+
+    document.getElementById("afterMessage").innerHTML =
+    "That's okay 🌸<br><br>The garden was happy to have you visit ><";
+
+    document.getElementById("gardenChoice").classList.add("hidden");
+}
+
+function chooseDate(choice){
+    selectedDate = choice;
+
+    document.getElementById("dateOptions")
+        .classList.add("hidden");
+
+    document.getElementById("noteToCreator")
+        .classList.remove("hidden");
+}
+
+function showReceipt(){
+
+    const note =
+        document.getElementById("creatorMessage").value;
+
+    const now = new Date();
+
+    document.getElementById("afterGarden").innerHTML = `
+
+    <div class="printer-wrapper">
+
+        <div class="receipt-machine"></div>
+
+        <div class="receipt">
+
+            <h2>♡Reservation Slip♡</h2>
+            ═══════════
+
+            <br><br>
+
+            <p>
+                <strong>Selected Adventure</strong>
+                <br>
+                ${selectedDate}
+            </p>
+
+            <br>
+
+            <p>
+                <strong>Date Recorded</strong>
+                <br>
+                ${now.toLocaleDateString()}
+            </p>
+
+            <br>
+
+            <p>
+                <strong>Little Note</strong>
+                <br>
+                ${note || "No message was left 🌷"}
+            </p>
+
+            <br>
+
+            ═══════════
+
+            ═══════════
+
+            <br><br>
+
+            <p style="
+              font-size:14px;
+              color:#666;
+             line-height:1.6;
+             margin-bottom:15px;
+        ">
+             📸 Please take a screenshot of this reservation slip
+            and send it to the Garden Keeper so the date can be
+            safely kept in your pocket ♡
+</p>
+
+<button onclick="finalMessage()">
+    Continue ✨
+</button>
+
+        </div>
+
+    </div>
+
+    `;
+}
+
+function finalMessage(){
+
+    document.getElementById("afterGarden").innerHTML = `
+        <h1>✨</h1>
+
+        <p id="typingText" style="
+            max-width:600px;
+            line-height:1.8;
+            font-size:20px;
+        "></p>
+    `;
+
+    const text =
+`Yippee!!!
+
+Every garden eventually closes its gates for the night.
+
+The flowers sleep,
+the fireflies drift away,
+and the paths grow quiet once more.
+
+But if you ever wish to visit again,
+this little garden will always remember you.
+
+I hope the stars align and I get to spend another day with you again, Janelle ♡
+
+Until next time 🌹`;
+
+    let i = 0;
+
+    function typeWriter(){
+
+        if(i < text.length){
+
+            document.getElementById("typingText").innerHTML += text.charAt(i);
+
+            i++;
+
+            setTimeout(typeWriter, 45);
+        }
+    }
+
+    typeWriter();
+}
+
+function openAfterGarden(){
+
+    const garden = document.getElementById("garden");
+    const afterGarden = document.getElementById("afterGarden");
+
+    garden.style.transition = "opacity 1s ease";
+    garden.style.opacity = "0";
+
+    setTimeout(() => {
+
+        garden.classList.add("hidden");
+
+        afterGarden.classList.remove("hidden");
+        afterGarden.classList.add("after-enter");
+
+        createPetals();
+        setInterval(createPetals, 3000);
+
+    }, 1000);
+}
+function fadeOutMusic(){
+
+    const music = document.getElementById("gardenMusic");
+
+    let fade = setInterval(() => {
+
+        if(music.volume > 0.05){
+            music.volume -= 0.05;
+        }
+        else{
+            music.pause();
+            music.currentTime = 0;
+            music.volume = 0.4;
+            clearInterval(fade);
+        }
+
+    }, 150);
+}
+function createFirework(){
+
+    const garden = document.getElementById("garden");
+
+    // 🎇 ROCKET (goes up first)
+    const rocket = document.createElement("div");
+    rocket.classList.add("firework");
+
+    const colors = ["#ff0044", "#00d9ff", "#fff200", "#fff200", "#b026ff", "#ff2da0"];
+    const color = colors[Math.floor(Math.random() * colors.length)];
+
+    rocket.style.background = color;
+    rocket.style.boxShadow = `0 0 10px ${color}`;
+
+    // start position (bottom-ish center random)
+    let x = Math.random() * 100;
+    let y = 5 + Math.random() * 100;
+
+    rocket.style.left = x + "vw";
+    rocket.style.top = y + "vh";
+
+    garden.appendChild(rocket);
+
+    // 🚀 animate upward
+    let rise = 0;
+
+    const riseInterval = setInterval(() => {
+
+        rise += 4;
+        rocket.style.top = (y - rise) + "vh";
+
+        // when it reaches peak → explode
+        if(rise >= 30){
+
+            clearInterval(riseInterval);
+
+            rocket.remove();
+
+            burst(x, y - rise, color);
+
+        }
+
+    }, 20);
+
+}
+function burst(x, y, color){
+
+    const garden = document.getElementById("garden");
+
+    for(let i = 0; i < 10; i++){
+
+        const spark = document.createElement("div");
+        spark.classList.add("firework");
+
+        spark.style.background = color;
+        spark.style.boxShadow = `0 0 10px ${color}`;
+
+        spark.style.left = x + "vw";
+        spark.style.top = y + "vh";
+
+        garden.appendChild(spark);
+
+        // random direction burst
+        const angle = Math.random() * 2 * Math.PI;
+        const distance = 5 + Math.random() * 8;
+
+        const dx = Math.cos(angle) * distance;
+        const dy = Math.sin(angle) * distance;
+
+        spark.animate([
+            { transform: "translate(0,0)", opacity: 1 },
+            { transform: `translate(${dx}vw, ${dy}vh)`, opacity: 0 }
+        ], {
+            duration: 800,
+            easing: "ease-out"
+        });
+
+        setTimeout(() => spark.remove(), 800);
+    }
+}
+</script>
+<!-- AFTER GARDEN -->
+<div id="afterGarden" class="screen hidden">
+
+    <h1>🌙 After Garden 🌙</h1>
+
+    <p id="afterMessage">
+        Would you like to go to the after garden with me?
+    </p>
+
+    <div id="gardenChoice">
+        <button onclick="showDateOptions()">Yes 🤍</button>
+        <button onclick="declineGarden()">No 🌧️</button>
+    </div>
+
+    <div id="dateOptions" class="hidden">
+
+        <p style="margin-bottom:15px;">
+            Would you like to go on a friends date? Just the two of us 🌸
+        </p>
+
+        <button onclick="chooseDate('☕ Cafe')">☕ Cafe</button>
+        <button onclick="chooseDate('🛍️ Mall')">🛍️ Mall</button>
+        <button onclick="chooseDate('🎮 Arcade')">🎮 Arcade</button>
+        <button onclick="chooseDate('🎬 Movies')">🎬 Movies</button>
+        <button onclick="chooseDate('🚶 Walk Somewhere')">🚶 Walk Somewhere</button>
+        <button onclick="chooseDate('🍜 Foodtrip')">🍜 Foodtrip</button>
+        <button onclick="chooseDate('✨ Surprise Me')">✨ Surprise Me</button>
+
+    </div> <!-- dateOptions -->
+<div id="noteToCreator" class="hidden">
+
+    <h2>💌 Note to the Garden Keeper</h2>
+
+    <p style="margin:15px 0;">
+        Before your reservation is recorded,
+        would you like to leave a note?
+    </p>
+
+    <textarea
+        id="creatorMessage"
+        placeholder="Write anything here... 🌸"
+        style="
+            width:350px;
+            max-width:90vw;
+            height:120px;
+            padding:12px;
+            border-radius:10px;
+            resize:none;
+        "
+    ></textarea>
+
+    <br>
+
+    <button onclick="showReceipt()">
+    Continue 🌙
+    </button>
+
+</div>
+</div> <!-- afterGarden -->
+
+</body>
+</html>
